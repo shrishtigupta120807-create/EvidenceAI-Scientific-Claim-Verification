@@ -1,48 +1,145 @@
-# EvidenceAI: Scientific Claim Verification
+# EvidenceAI: Scientific Evidence Retrieval & Claim Verification
 
-An NLP and deep learning project that retrieves scientific research papers and evaluates whether their evidence supports, contradicts, or is neutral toward a given scientific claim.
+An NLP and deep learning project that retrieves relevant scientific research abstracts and examines whether the retrieved evidence supports, contradicts, or is neutral toward a given scientific claim.
 
 ## Project Overview
 
-EvidenceAI aims to combine semantic search and Natural Language Inference (NLI) to make scientific claim verification more accessible.
+EvidenceAI combines semantic information retrieval, neural reranking, and Natural Language Inference (NLI) to build an interactive scientific evidence analysis system.
 
-### Planned Architecture
+Given a scientific claim, the system:
+1. Retrieves potentially relevant scientific abstracts.
+2. Reranks retrieved documents based on their relevance to the claim.
+3. Applies an NLI model to estimate the relationship between the evidence and the claim.
+4. Displays the retrieved evidence and model predictions through a Streamlit interface.
 
-1. **Document Retrieval:** Retrieve relevant scientific abstracts using TF-IDF and Sentence-BERT.
-2. **Semantic Search:** Generate dense embeddings and perform similarity search using FAISS.
-3. **Reranking:** Improve document ranking using a cross-encoder.
-4. **Claim Verification:** Classify evidence as SUPPORTS, CONTRADICTS, or NEUTRAL.
-5. **Interactive Interface:** Build a demonstration interface using Gradio.
+## System Architecture
+
+**1. Document Retrieval**
+- Uses Sentence-BERT (`all-MiniLM-L6-v2`) to generate dense document embeddings.
+- Uses FAISS for efficient similarity search.
+- Retrieves the top candidate documents for a given claim.
+
+**2. Document Reranking**
+- Uses a Cross-Encoder (`ms-marco-MiniLM-L-6-v2`).
+- Scores claim-document pairs and reranks the retrieved candidates.
+
+**3. Claim Verification**
+- Uses DeBERTa (`nli-deberta-v3-base`) for Natural Language Inference.
+- Produces probability estimates for:
+  - Entailment
+  - Contradiction
+  - Neutral
+
+**4. Interactive Application**
+- Built using Streamlit.
+- Allows users to enter scientific claims and inspect retrieved abstracts, retrieval scores, reranking scores, and NLI predictions.
 
 ## Dataset
 
-- BEIR SciFact: 5,183 scientific abstracts.
-- Original SciFact annotations: supporting and refuting evidence.
+**BEIR SciFact**
+
+- 5,183 scientific documents.
+- 809 training claims.
+- Scientific abstracts with relevance judgments.
 
 Dataset sources:
-- https://huggingface.co/datasets/BeIR/scifact
-- https://github.com/allenai/scifact
+- [BEIR SciFact Dataset](https://huggingface.co/datasets/BeIR/scifact)
+- [Original SciFact Repository](https://github.com/allenai/scifact)
 
-## Current Progress
-
-- [x] SciFact dataset loading and exploration
-- [x] TF-IDF retrieval baseline
-- [x] Sentence-BERT semantic embeddings
-- [x] FAISS vector search
-- [ ] Transformer architecture exploration
-- [ ] Cross-encoder reranking
-- [ ] NLI-based claim verification
-- [ ] Model evaluation
-- [ ] Gradio application
-
-## Tech Stack
-
-Python, PyTorch, Hugging Face Transformers, Sentence Transformers, FAISS, Scikit-learn, Gradio.
+**Important:** The BEIR relevance judgments are used for retrieval evaluation. They are not NLI support/contradiction labels.
 
 ## Evaluation
 
-Retrieval performance will be evaluated using Recall@K, MRR and nDCG. Verification performance will be evaluated using classification metrics such as macro F1.
+### Retrieval Performance
+
+| Retrieval Method | Recall@5 |
+|---|---:|
+| TF-IDF baseline | 67.81% |
+| Sentence-BERT | 73.47% |
+
+Sentence-BERT achieved an improvement of **5.66 percentage points** over the TF-IDF baseline.
+
+These results were obtained using the SciFact training split and should not be interpreted as held-out test performance.
+
+### NLI Verification
+
+The system uses a pretrained DeBERTa NLI model to estimate evidence-claim relationships.
+
+NLI predictions are model-generated estimates and require further evaluation against appropriately labelled verification data.
+
+## Tech Stack
+
+- **Programming:** Python
+- **Deep Learning:** PyTorch
+- **NLP:** Hugging Face Transformers, Sentence Transformers
+- **Retrieval:** FAISS, TF-IDF, Scikit-learn
+- **Reranking:** Cross-Encoder
+- **Interface:** Streamlit
+- **Dataset:** BEIR SciFact
+
+## Project Structure
+
+```text
+EvidenceAI/
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── LICENSE
+├── .gitignore
+│
+└── notebooks/
+    └── Research and experimentation notebooks
+```
+
+The notebooks document the development and experimentation stages of the project.
+
+## Installation and Usage
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/shrishtigupta120807-create/EvidenceAI-Scientific-Claim-Verification.git
+```
+
+### 2. Navigate to the project directory
+
+```bash
+cd EvidenceAI-Scientific-Claim-Verification
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 4. Run the application
+
+```bash
+python -m streamlit run app.py
+```
+
+The application will open in your browser.
+
+**Note:** On the first launch, the application downloads the SciFact dataset and pretrained models. Initial loading may take several minutes.
+
+## Current Limitations
+
+- The Cross-Encoder uses a general-purpose MS MARCO reranking model rather than a model specifically trained for scientific evidence retrieval.
+- NLI predictions are not definitive scientific conclusions.
+- Long abstracts may be truncated to fit the NLI model's token limit.
+- Retrieval evaluation currently uses the SciFact training split; independent held-out evaluation remains necessary.
+- Further verification evaluation and model calibration are needed.
+
+## Future Improvements
+
+- Improve NLI verification reliability.
+- Evaluate verification using labelled support and contradiction examples.
+- Conduct held-out retrieval evaluation.
+- Improve evidence presentation and source traceability.
+- Deploy the application publicly.
 
 ## Disclaimer
 
-This project is an educational research prototype. Its predictions should not be treated as definitive scientific conclusions.
+EvidenceAI is an educational research prototype. Its predictions are generated by machine learning models and should not be treated as definitive scientific conclusions or a substitute for expert scientific assessment.
